@@ -2,144 +2,113 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Resume Enhancer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Enhanced Resume Generator</title>
     <style>
       body {
         font-family: Arial, sans-serif;
-        background: #f0f2f5;
         margin: 0;
-        padding: 40px;
-        text-align: center;
+        padding: 0;
+        background: #f4f4f4;
       }
       .container {
+        max-width: 800px;
+        margin: 40px auto;
         background: white;
-        max-width: 600px;
-        margin: auto;
-        padding: 30px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+      }
+      h2 {
+        text-align: center;
+        color: #333;
       }
       input[type="file"] {
+        width: 100%;
         margin: 20px 0;
       }
       button {
-        margin: 10px;
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-        border: none;
-        border-radius: 6px;
-        background-color: #007bff;
+        background-color: #4caf50;
         color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 10px 5px;
       }
       button:hover {
-        background-color: #0056b3;
+        background-color: #45a049;
       }
       iframe {
         width: 100%;
-        height: 600px;
-        border: none;
+        height: 500px;
+        border: 1px solid #ccc;
         margin-top: 20px;
+      }
+      .hidden {
+        display: none;
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <h1>Upload Resume to Enhance</h1>
-      <form id="uploadForm">
-        <input
-          type="file"
-          name="resume"
-          id="resume"
-          accept="application/pdf"
-          required
-        />
-        <br />
-        <button type="submit">Enhance Resume</button>
-      </form>
-      <button id="viewBtn" style="display: none">View Enhanced Resume</button>
-      <button id="downloadBtn" style="display: none">
-        Download Enhanced Resume
-      </button>
+    <div class="container" id="uploadSection">
+      <h2>Upload Your Old Resume</h2>
+      <input type="file" id="resumeInput" accept="application/pdf" />
+      <button onclick="enhanceResume()">Enhance Resume</button>
+    </div>
 
-      <div id="viewer" style="display: none">
-        <h2>Enhanced Resume Preview</h2>
-        <iframe id="pdfPreview"></iframe>
+    <div class="container hidden" id="viewSection">
+      <h2>Enhanced Resume Preview</h2>
+      <iframe id="resumeViewer"></iframe>
+      <div style="text-align: center">
+        <button onclick="reEnhance()">Re-Enhance</button>
+        <button onclick="downloadResume()">Download</button>
       </div>
     </div>
 
     <script>
       let enhancedBlob = null;
 
-      document
-        .getElementById("uploadForm")
-        .addEventListener("submit", async function (event) {
-          event.preventDefault();
-          const fileInput = document.getElementById("resume");
-          const file = fileInput.files[0];
-
-          if (!file) {
-            alert("Please upload a PDF resume first.");
-            return;
-          }
-
-          const formData = new FormData();
-          formData.append("resume", file);
-
-          try {
-            const response = await fetch("http://localhost:5000/enhance", {
-              method: "POST",
-              body: formData,
-              headers: {
-                Accept: "application/json",
-                "Content-Type": "multipart/form-data",
-              },
-            });
-
-            if (!response.ok) {
-              throw new Error("Enhancement failed: " + response.statusText);
-            }
-
-            const blob = await response.blob();
-            enhancedBlob = blob;
-
-            alert(
-              "Resume enhanced successfully! You can now view or download it."
-            );
-            document.getElementById("viewBtn").style.display = "inline-block";
-            document.getElementById("downloadBtn").style.display =
-              "inline-block";
-          } catch (error) {
-            alert("Error: " + error.message);
-          }
-        });
-
-      document.getElementById("viewBtn").addEventListener("click", function () {
-        if (!enhancedBlob) {
-          alert("Please enhance a resume first.");
+      function enhanceResume() {
+        const input = document.getElementById("resumeInput");
+        if (input.files.length === 0) {
+          alert("Please upload a resume PDF.");
           return;
         }
-        const viewer = document.getElementById("viewer");
-        const pdfPreview = document.getElementById("pdfPreview");
-        const blobUrl = URL.createObjectURL(enhancedBlob);
-        pdfPreview.src = blobUrl;
-        viewer.style.display = "block";
-      });
 
-      document
-        .getElementById("downloadBtn")
-        .addEventListener("click", function () {
-          if (!enhancedBlob) {
-            alert("Please enhance a resume first.");
-            return;
-          }
-          const link = document.createElement("a");
-          link.href = URL.createObjectURL(enhancedBlob);
-          link.download = "Enhanced_Resume.pdf";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        });
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          // Simulating enhancement: copy the PDF as "enhanced"
+          enhancedBlob = new Blob([e.target.result], {
+            type: "application/pdf",
+          });
+          const url = URL.createObjectURL(enhancedBlob);
+
+          // Show viewer
+          document.getElementById("resumeViewer").src = url;
+          document.getElementById("uploadSection").classList.add("hidden");
+          document.getElementById("viewSection").classList.remove("hidden");
+        };
+        reader.readAsArrayBuffer(input.files[0]);
+      }
+
+      function reEnhance() {
+        // Simulate re-enhancement by resetting iframe src (would use real model in backend)
+        const url = URL.createObjectURL(enhancedBlob);
+        document.getElementById("resumeViewer").src = url;
+        alert("Re-enhancement complete (simulated).");
+      }
+
+      function downloadResume() {
+        if (!enhancedBlob) {
+          alert("No resume to download.");
+          return;
+        }
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(enhancedBlob);
+        a.download = "enhanced_resume.pdf";
+        a.click();
+      }
     </script>
   </body>
 </html>
